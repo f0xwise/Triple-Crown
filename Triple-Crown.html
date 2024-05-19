@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Triple Crown Picks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #2e7d32;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 10px 0;
+        }
+        nav {
+            margin-top: 20px;
+            text-align: center;
+        }
+        nav button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 0 10px;
+            cursor: pointer;
+            background-color: #2e7d32;
+            color: #e0e0e0;
+            border: none;
+        }
+        .active-tab {
+            background-color: #1b5e20;
+        }
+        section {
+            display: none;
+            margin: 20px 0;
+        }
+        section.active {
+            display: block;
+        }
+        h2 {
+            color: #2e7d32;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #424242;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #2e7d32;
+            color: #e0e0e0;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            margin-right: 10px;
+            font-size: 16px;
+            background-color: #424242;
+            color: #e0e0e0;
+            border: 1px solid #2e7d32;
+        }
+        input[type="submit"], button {
+            padding: 8px 16px;
+            font-size: 16px;
+            background-color: #2e7d32;
+            color: #e0e0e0;
+            border: none;
+            cursor: pointer;
+        }
+        .form-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Family Triple Crown Picks</h1>
+    </header>
+
+    <nav>
+        <button id="standings-tab" class="active-tab">Standings</button>
+        <button id="entry-tab">Entry</button>
+    </nav>
+
+    <section id="standings" class="active">
+        <h2>Standings</h2>
+        <div id="standings-options">
+            <button id="overall">Overall</button>
+            <button id="race-averages">Race Averages</button>
+            <button id="seasonal">Seasonal</button>
+            <button id="player-stats">Player Stats</button>
+            <button id="winning-horses">Winning Horses</button>
+        </div>
+        <div id="standings-content">
+            <!-- Standings content will be displayed here -->
+        </div>
+    </section>
+
+    <section id="entry">
+        <h2>Entry</h2>
+        <section id="participants">
+            <h2>Participants</h2>
+            <form id="add-participant-form">
+                <input type="text" id="new-participant" placeholder="Enter participant name" required>
+                <input type="submit" value="Add Participant">
+            </form>
+            <ul id="participants-list">
+                <!-- Participant names will be listed here dynamically -->
+            </ul>
+        </section>
+
+        <section id="race-data" class="form-section">
+            <h2>Log Race Data</h2>
+            <form id="race-data-form">
+                <label for="race-year">Year:</label>
+                <select id="race-year" required>
+                    <!-- Years will be populated dynamically -->
+                </select>
+                <label for="race-name">Race:</label>
+                <select id="race-name" required>
+                    <option value="Kentucky Derby">Kentucky Derby</option>
+                    <option value="Preakness Stakes">Preakness Stakes</option>
+                    <option value="Belmont Stakes">Belmont Stakes</option>
+                </select>
+                <table id="race-table">
+                    <thead>
+                        <tr>
+                            <th>Pole Position</th>
+                            <th>Horse Name</th>
+                            <th>Final Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be added dynamically -->
+                    </tbody>
+                </table>
+                <button type="button" id="save-race-data">Save Race Data</button>
+            </form>
+        </section>
+
+        <section id="log-picks" class="form-section">
+            <h2>Log Picks</h2>
+            <form id="picks-form">
+                <label for="pick-participant">Participant:</label>
+                <select id="pick-participant" required>
+                    <!-- Participants will be populated dynamically -->
+                </select>
+                <label for="pick-race">Race:</label>
+                <select id="pick-race" required>
+                    <option value="Kentucky Derby">Kentucky Derby</option>
+                    <option value="Preakness Stakes">Preakness Stakes</option>
+                    <option value="Belmont Stakes">Belmont Stakes</option>
+                </select>
+                <label for="pick1">Pick 1:</label>
+                <input type="number" id="pick1" required>
+                <label for="pick2">Pick 2:</label>
+                <input type="number" id="pick2" required>
+                <label for="pick3">Pick 3:</label>
+                <input type="number" id="pick3" required>
+                <button type="button" id="save-picks">Save Picks</button>
+            </form>
+        </section>
+    </section>
+
+    <script>
+        const data = {
+            participants: ["Participant 1", "Participant 2", "Participant 3"],
+            picks: {},
+            raceResults: {}
+        };
+
+        function showTab(tabId) {
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('nav button').forEach(button => {
+                button.classList.remove('active-tab');
+            });
+            document.getElementById(tabId + '-tab').classList.add('active-tab');
+        }
+
+        function showStandingsOption(optionId) {
+            document.querySelectorAll('#standings-options button').forEach(button => {
+                button.classList.remove('active-tab');
+            });
+            document.getElementById(optionId).classList.add('active-tab');
+            // Load the appropriate standings content here
+            // Implement the specific standings views based on the selected option
+            displayStandingsContent(optionId);
+        }
+
+        function displayStandingsContent(optionId) {
+            const standingsContent = document.getElementById('standings-content');
+            standingsContent.innerHTML = '';
+
+            switch (optionId) {
+                case 'overall':
+                    displayOverallStandings();
+                    break;
+                case 'race-averages':
+                    displayRaceAverages();
+                    break;
+                case 'seasonal':
+                    displaySeasonalStandings();
+                    break;
+                case 'player-stats':
+                    displayPlayerStats();
+                    break;
+                case 'winning-horses':
+                    displayWinningHorses();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function displayOverallStandings() {
+            const standingsContent = document.getElementById('standings-content');
+            const scores = calculateScores();
+
+            const sortedParticipants = Object.keys(scores).sort((a, b) => scores[b].total - scores[a].total);
+
+            let table = '<table><thead><tr><th>Participant</th><th>Total Points</th><th>Points Gap</th><th>Gap to Leader</th></tr></thead><tbody>';
+
+            sortedParticipants.forEach((participant, index) => {
+                const totalPoints = scores[participant].total;
+                const pointsGap = index === 0 ? '-' : totalPoints - scores[sortedParticipants[index - 1]].total;
+                const gapToLeader = totalPoints - scores[sortedParticipants[0]].total;
+
+                table += `<tr>
+                    <td>${participant}</td>
+                    <td>${totalPoints}</td>
+                    <td>${pointsGap}</td>
+                    <td>${gapToLeader}</td>
+                </tr>`;
+            });
+
+            table += '</tbody></table>';
+            standingsContent.innerHTML = table;
+        }
+
+        function displayRaceAverages() {
+            const standingsContent = document.getElementById('standings-content');
+            const scores = calculateScores();
+            const raceCounts = calculateRaceCounts();
+
+            let table = '<table><thead><tr><th>Participant</th><th>Average Points</th><th>Kentucky Derby Average</th><th>Preakness Stakes Average</th><th>Belmont Stakes Average</th></tr></thead><tbody>';
+
+            Object.keys(scores).forEach(participant => {
+                const totalPoints = scores[participant].total;
+                const totalRaces = raceCounts[participant].total;
+                const derbyAverage = raceCounts[participant]['Kentucky Derby'] > 0 ? (scores[participant]['Kentucky Derby'] / raceCounts[participant]['Kentucky Derby']).toFixed(2) : 'N/A';
+                const preaknessAverage = raceCounts[participant]['Preakness Stakes'] > 0 ? (scores[participant]['Preakness Stakes'] / raceCounts[participant]['Preakness Stakes']).toFixed(2) : 'N/A';
+                const belmontAverage = raceCounts[participant]['Belmont Stakes'] > 0 ? (scores[participant]['Belmont Stakes'] / raceCounts[participant]['Belmont Stakes']).toFixed(2) : 'N/A';
+                const averagePoints = totalRaces > 0 ? (totalPoints / totalRaces).toFixed(2) : 'N/A';
+
+                table += `<tr>
+                    <td>${participant}</td>
+                    <td>${averagePoints}</td>
+                    <td>${derbyAverage}</td>
+                    <td>${preaknessAverage}</td>
+                    <td>${belmontAverage}</td>
+                </tr>`;
+            });
+
+            table += '</tbody></table>';
+            standingsContent.innerHTML = table;
+        }
+
+        function displaySeasonalStandings() {
+            const standingsContent = document.getElementById('standings-content');
+
+            let table = '<table><thead><tr><th>Year</th><th>1st Place</th><th>2nd Place</th><th>3rd Place</th></thead><tbody>';
+
+            Object.keys(data.raceResults).sort((a, b) => b - a).forEach(year => {
+                const yearScores = {};
+
+                Object.keys(data.picks).forEach(race => {
+                    if (race.includes(year)) {
+                        Object.keys(data.picks[race]).forEach(participant => {
+                            if (!yearScores[participant]) {
+                                yearScores[participant] = 0;
+                            }
+                            yearScores[participant] += calculateRaceScore(year, race, participant);
+                        });
+                    }
+                });
+
+                const sortedParticipants = Object.keys(yearScores).sort((a, b) => yearScores[b] - yearScores[a]);
+
+                table += `<tr>
+                    <td>${year}</td>
+                    <td>${sortedParticipants[0]} (${yearScores[sortedParticipants[0]]})</td>
+                    <td>${sortedParticipants[1]} (${yearScores[sortedParticipants[1]]})</td>
+                    <td>${sortedParticipants[2]} (${yearScores[sortedParticipants[2]]})</td>
+                </tr>`;
+            });
+
+            table += '</tbody></table>';
+            standingsContent.innerHTML = table;
+        }
+
+        function displayPlayerStats() {
+            const standingsContent = document.getElementById('standings-content');
+            standingsContent.innerHTML = `
+                <label for="player-stats-select">Select Player:</label>
+                <select id="player-stats-select" onchange="updatePlayerStats()">
+                    ${data.participants.map(participant => `<option value="${participant}">${participant}</option>`).join('')}
+                </select>
+                <div id="player-stats-content"></div>
+            `;
+            updatePlayerStats();
+        }
+
+        function updatePlayerStats() {
+            const selectedPlayer = document.getElementById('player-stats-select').value;
+            const playerStatsContent = document.getElementById('player-stats-content');
+            const scores = calculateScores();
+            const raceCounts = calculateRaceCounts();
+            const totalPoints = scores[selectedPlayer].total;
+            const totalRaces = raceCounts[selectedPlayer].total;
+            const averagePoints = totalRaces > 0 ? (totalPoints / totalRaces).toFixed(2) : 'N/A';
+
+            let playerStats = `
+                <h3>${selectedPlayer}</h3>
+                <p>Overall Score: ${totalPoints}</p>
+                <p>Average Race Score: ${averagePoints}</p>
+                <h4>Race Averages</h4>
+                <p>Kentucky Derby: ${raceCounts[selectedPlayer]['Kentucky Derby'] > 0 ? (scores[selectedPlayer]['Kentucky Derby'] / raceCounts[selectedPlayer]['Kentucky Derby']).toFixed(2) : 'N/A'}</p>
+                <p>Preakness Stakes: ${raceCounts[selectedPlayer]['Preakness Stakes'] > 0 ? (scores[selectedPlayer]['Preakness Stakes'] / raceCounts[selectedPlayer]['Preakness Stakes']).toFixed(2) : 'N/A'}</p>
+                <p>Belmont Stakes: ${raceCounts[selectedPlayer]['Belmont Stakes'] > 0 ? (scores[selectedPlayer]['Belmont Stakes'] / raceCounts[selectedPlayer]['Belmont Stakes']).toFixed(2) : 'N/A'}</p>
+                <h4>Historical Record</h4>
+                ${displayPlayerHistory(selectedPlayer)}
+            `;
+            playerStatsContent.innerHTML = playerStats;
+        }
+
+        function displayPlayerHistory(player) {
+            let history = '<table><thead><tr><th>Year</th><th>Race</th><th>Pick 1</th><th>Pick 2</th><th>Pick 3</th></tr></thead><tbody>';
+
+            Object.keys(data.picks).forEach(race => {
+                if (data.picks[race][player]) {
+                    history += `<tr>
+                        <td>${race.split(' ')[0]}</td>
+                        <td>${race.split(' ').slice(1).join(' ')}</td>
+                        <td>${data.picks[race][player][0]}</td>
+                        <td>${data.picks[race][player][1]}</td>
+                        <td>${data.picks[race][player][2]}</td>
+                    </tr>`;
+                }
+            });
+
+            history += '</tbody></table>';
+            return history;
+        }
+
+        function displayWinningHorses() {
+            const standingsContent = document.getElementById('standings-content');
+            let table = '<table><thead><tr><th>Year</th><th>Kentucky Derby</th><th>Preakness Stakes</th><th>Belmont Stakes</th></tr></thead><tbody>';
+
+            Object.keys(data.raceResults).sort((a, b) => b - a).forEach(year => {
+                table += `<tr>
+                    <td>${year}</td>
+                    <td>${getWinningHorses(year, 'Kentucky Derby')}</td>
+                    <td>${getWinningHorses(year, 'Preakness Stakes')}</td>
+                    <td>${getWinningHorses(year, 'Belmont Stakes')}</td>
+                </tr>`;
+            });
+
+            table += '</tbody></table>';
+            standingsContent.innerHTML = table;
+        }
+
+        function getWinningHorses(year, race) {
+            const results = data.raceResults[year][race] || [];
+            const topThree = results.sort((a, b) => a.position - b.position).slice(0, 3);
+            return topThree.map(horse => `${horse.name} (${horse.position})`).join(', ');
+        }
+
+        function calculateScores() {
+            const participants = data.participants;
+            const picks = data.picks;
+            const raceResults = data.raceResults;
+
+            let scores = {};
+            participants.forEach(participant => scores[participant] = { "Kentucky Derby": 0, "Preakness Stakes": 0, "Belmont Stakes": 0, total: 0 });
+
+            for (let race in picks) {
+                participants.forEach(participant => {
+                    const participantPicks = picks[race][participant];
+                    const results = raceResults[race.split(' ')[0]] ? raceResults[race.split(' ')[0]][race.split(' ').slice(1).join(' ')] : [];
+                    let raceScore = 0;
+                    let topThreeCount = 0;
+
+                    participantPicks.forEach(pick => {
+                        const result = results.find(r => r.pole === pick);
+                        if (result) {
+                            if (result.position === 1) raceScore += 6;
+                            if (result.position === 2) raceScore += 3;
+                            if (result.position === 3) raceScore += 1;
+                            if (result.position <= 3) topThreeCount++;
+                        }
+                    });
+
+                    if (topThreeCount === 3) raceScore += 4; // Bonus points
+
+                    scores[participant][race.split(' ').slice(1).join(' ')] = (scores[participant][race.split(' ').slice(1).join(' ')] || 0) + raceScore;
+                    scores[participant].total += raceScore;
+                });
+            }
+
+            return scores;
+        }
+
+        function calculateRaceCounts() {
+            const participants = data.participants;
+            const picks = data.picks;
+
+            let raceCounts = {};
+            participants.forEach(participant => raceCounts[participant] = { "Kentucky Derby": 0, "Preakness Stakes": 0, "Belmont Stakes": 0, total: 0 });
+
+            for (let race in picks) {
+                participants.forEach(participant => {
+                    if (picks[race][participant]) {
+                        const raceName = race.split(' ').slice(1).join(' ');
+                        raceCounts[participant][raceName]++;
+                        raceCounts[participant].total++;
+                    }
+                });
+            }
+
+            return raceCounts;
+        }
+
+        document.getElementById('standings-tab').addEventListener('click', () => showTab('standings'));
+        document.getElementById('entry-tab').addEventListener('click', () => showTab('entry'));
+
+        document.getElementById('overall').addEventListener('click', () => showStandingsOption('overall'));
+        document.getElementById('race-averages').addEventListener('click', () => showStandingsOption('race-averages'));
+        document.getElementById('seasonal').addEventListener('click', () => showStandingsOption('seasonal'));
+        document.getElementById('player-stats').addEventListener('click', () => showStandingsOption('player-stats'));
+        document.getElementById('winning-horses').addEventListener('click', () => showStandingsOption('winning-horses'));
+
+        document.getElementById('add-participant-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const newParticipant = document.getElementById('new-participant').value;
+            if (newParticipant && !data.participants.includes(newParticipant)) {
+                data.participants.push(newParticipant);
+                displayParticipants();
+                populateParticipantsDropdown();
+                displayPicks();
+                displayScores();
+                document.getElementById('new-participant').value = '';
+            }
+        });
+
+        document.getElementById('save-race-data').addEventListener('click', function() {
+            const year = document.getElementById('race-year').value;
+            const race = document.getElementById('race-name').value;
+            const raceResults = [];
+            const rows = document.querySelectorAll('#race-table tbody tr');
+
+            rows.forEach(row => {
+                const pole = row.cells[0].textContent;
+                const horseName = row.querySelector(`input[name="horse-name-${pole}"]`).value;
+                const finalPosition = row.querySelector(`input[name="final-position-${pole}"]`).value;
+
+                if (horseName && finalPosition) {
+                    raceResults.push({ pole: parseInt(pole), name: horseName, position: parseInt(finalPosition) });
+                }
+            });
+
+            if (!data.raceResults[year]) {
+                data.raceResults[year] = {};
+            }
+            data.raceResults[year][race] = raceResults;
+            displayScores();
+            alert('Race data saved successfully!');
+        });
+
+        document.getElementById('save-picks').addEventListener('click', function() {
+            const participant = document.getElementById('pick-participant').value;
+            const race = document.getElementById('pick-race').value;
+            const pick1 = parseInt(document.getElementById('pick1').value);
+            const pick2 = parseInt(document.getElementById('pick2').value);
+            const pick3 = parseInt(document.getElementById('pick3').value);
+
+            if (!data.picks[race]) {
+                data.picks[race] = {};
+            }
+            data.picks[race][participant] = [pick1, pick2, pick3];
+            displayPicks();
+            displayScores();
+            alert('Picks saved successfully!');
+        });
+
+        function populateDropdowns() {
+            const yearDropdown = document.getElementById('race-year');
+            const currentYear = new Date().getFullYear();
+            for (let year = 1998; year <= currentYear; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearDropdown.appendChild(option);
+            }
+            yearDropdown.value = currentYear;
+        }
+
+        function populateParticipantsDropdown() {
+            const pickParticipantDropdown = document.getElementById('pick-participant');
+            pickParticipantDropdown.innerHTML = '';
+            data.participants.forEach(participant => {
+                const option = document.createElement('option');
+                option.value = participant;
+                option.textContent = participant;
+                pickParticipantDropdown.appendChild(option);
+            });
+        }
+
+        function populateRaceTable() {
+            const raceTableBody = document.querySelector('#race-table tbody');
+            raceTableBody.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                const row = document.createElement('tr');
+                const poleCell = document.createElement('td');
+                const nameCell = document.createElement('td');
+                const positionCell = document.createElement('td');
+
+                poleCell.textContent = i;
+                nameCell.innerHTML = `<input type="text" name="horse-name-${i}" required>`;
+                positionCell.innerHTML = `<input type="number" name="final-position-${i}" min="1" max="20" required>`;
+
+                row.appendChild(poleCell);
+                row.appendChild(nameCell);
+                row.appendChild(positionCell);
+
+                raceTableBody.appendChild(row);
+            }
+        }
+
+        function displayParticipants() {
+            const participantsList = document.getElementById('participants-list');
+            participantsList.innerHTML = '';
+            data.participants.forEach(participant => {
+                const listItem = document.createElement('li');
+                listItem.textContent = participant;
+                participantsList.appendChild(listItem);
+            });
+        }
+
+        function displayPicks() {
+            const picks = data.picks;
+            const picksBody = document.getElementById('picks-body');
+            if (picksBody) {
+                picksBody.innerHTML = '';
+                for (let race in picks) {
+                    for (let participant in picks[race]) {
+                        const row = document.createElement('tr');
+                        const participantCell = document.createElement('td');
+                        const raceCell = document.createElement('td');
+                        const pick1Cell = document.createElement('td');
+                        const pick2Cell = document.createElement('td');
+                        const pick3Cell = document.createElement('td');
+
+                        participantCell.textContent = participant;
+                        raceCell.textContent = race;
+                        pick1Cell.textContent = picks[race][participant][0];
+                        pick2Cell.textContent = picks[race][participant][1];
+                        pick3Cell.textContent = picks[race][participant][2];
+
+                        row.appendChild(participantCell);
+                        row.appendChild(raceCell);
+                        row.appendChild(pick1Cell);
+                        row.appendChild(pick2Cell);
+                        row.appendChild(pick3Cell);
+
+                        picksBody.appendChild(row);
+                    }
+                }
+            }
+        }
+
+        function displayScores() {
+            const scores = calculateScores();
+            const scoresBody = document.getElementById('scores-body');
+            if (scoresBody) {
+                scoresBody.innerHTML = '';
+                for (let participant in scores) {
+                    const row = document.createElement('tr');
+                    const participantCell = document.createElement('td');
+                    const derbyCell = document.createElement('td');
+                    const preaknessCell = document.createElement('td');
+                    const belmontCell = document.createElement('td');
+                    const totalCell = document.createElement('td');
+
+                    participantCell.textContent = participant;
+                    derbyCell.textContent = scores[participant]["Kentucky Derby"];
+                    preaknessCell.textContent = scores[participant]["Preakness Stakes"];
+                    belmontCell.textContent = scores[participant]["Belmont Stakes"];
+                    totalCell.textContent = scores[participant].total;
+
+                    row.appendChild(participantCell);
+                    row.appendChild(derbyCell);
+                    row.appendChild(preaknessCell);
+                    row.appendChild(belmontCell);
+                    row.appendChild(totalCell);
+
+                    scoresBody.appendChild(row);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            populateDropdowns();
+            populateParticipantsDropdown();
+            populateRaceTable();
+            displayParticipants();
+            displayPicks();
+            displayScores();
+        });
+    </script>
+</body>
+</html>
